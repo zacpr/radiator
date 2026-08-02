@@ -1,0 +1,12 @@
+# Build/packaging artifacts
+web-ext-artifacts/
+*.xpi
+*.zip
+
+# Editor/tooling
+.claude/
+.vscode/
+*.DS_Store
+
+# Design notes / scratch screenshots — not part of the extension
+image.png

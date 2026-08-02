@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font: 13px/1.5 system-ui, sans-serif; padding: 12px 16px; min-width: 440px; }
+    h3 { margin: 14px 0 6px; font-size: 14px; }
+    h3:first-child { margin-top: 0; }
+    label { display: block; margin: 5px 0; cursor: pointer; }
+    .row { display: flex; align-items: center; gap: 8px; margin: 5px 0; }
+    .row label { flex: 1; margin: 0; }
+    input[type="number"] { width: 70px; font: inherit; padding: 2px 4px; }
+    input[type="range"] { width: 140px; vertical-align: middle; }
+    select { font: inherit; padding: 2px 6px; }
+    textarea {
+      width: 100%; height: 160px; box-sizing: border-box;
+      font: 12px/1.5 monospace; tab-size: 2;
+    }
+    button { font: inherit; padding: 4px 14px; margin-top: 6px; }
+    .hint { color: #888; font-size: 12px; margin: 6px 0 0; }
+    code { font-size: 11px; }
+    #saved { color: #3fb950; margin-left: 8px; visibility: hidden; }
+  </style>
+</head>
+<body>
+  <h3>Default right-click menu</h3>
+  <label><input type="radio" name="defaultMenu" value="native"> Firefox's normal menu (radial menu needs the modifier)</label>
+  <label><input type="radio" name="defaultMenu" value="radial"> Radial menu (modifier gives the normal menu instead)</label>
+
+  <h3>Modifier key</h3>
+  <label><input type="radio" name="modifier" value="ctrl"> Ctrl + right-click</label>
+  <label><input type="radio" name="modifier" value="alt"> Alt + right-click</label>
+  <label><input type="radio" name="modifier" value="meta"> Meta/Super + right-click</label>
+  <label><input type="radio" name="modifier" value="none"> No modifier needed</label>
+  <p class="hint">Holds the modifier to reach whichever menu isn't the default.
+    On links, the radial menu <em>always</em> needs the modifier — links carry
+    handy native items like Copy Link — so "no modifier" falls back to Ctrl
+    there. Shift + right-click always shows the normal menu, and there's an
+    "Open Radial Tab Menu" fallback item inside it plus a toolbar button.</p>
+
+  <h3>Ring</h3>
+  <div class="row">
+    <label for="maxItems">Max items on the ring</label>
+    <input type="number" id="maxItems" min="3" max="60" step="1">
+  </div>
+  <div class="row">
+    <label for="minRadius">Minimum radius (px)</label>
+    <input type="number" id="minRadius" min="60" max="600" step="10">
+  </div>
+  <div class="row">
+    <label for="maxRadius">Maximum radius (px)</label>
+    <input type="number" id="maxRadius" min="60" max="600" step="10">
+  </div>
+  <div class="row">
+    <label for="itemScale">Item scale</label>
+    <input type="range" id="itemScale" min="0.6" max="1.6" step="0.05">
+    <span id="scaleVal">1.00×</span>
+  </div>
+  <div class="row">
+    <label for="fillMode">Fill mode (when tabs don't fill the ring)</label>
+    <select id="fillMode">
+      <option value="equidistant">Equidistant — spread around the circle</option>
+      <option value="blanks">Blanks — fixed spacing, gap at the seam</option>
+      <option value="repeat">Repeat — cycle tabs again to fill it</option>
+    </select>
+  </div>
+  <p class="hint">With more tabs than max items, the ring becomes an endless
+    wrap-around window — tabs slide in and out at the bottom as you scroll,
+    and every tab stays reachable.</p>
+  <label><input type="checkbox" id="containerColors">
+    Show container colours on tabs (Multi-Account Containers)</label>
+
+  <h3>Theme</h3>
+  <select id="theme">
+    <option value="slate">Slate — dark &amp; minimal</option>
+    <option value="quest">Quest — parchment &amp; leather</option>
+    <option value="holo">Holo — sci-fi neon</option>
+    <option value="runestone">Runestone — ancient stonework</option>
+  </select>
+
+  <h3>Custom CSS</h3>
+  <p class="hint">Applied on top of the selected theme. Style hooks:
+    <code>.loz</code> (tab pill), <code>.loz .title</code>, <code>.fav</code>,
+    <code>.badge</code>, <code>.loz.active</code> (current tab),
+    <code>.loz.hi</code> (highlighted), <code>.ctrl</code> (outer buttons),
+    <code>.preview</code>, <code>.label</code>, <code>.notch</code> (selector).
+  </p>
+  <textarea id="customCss" spellcheck="false"
+    placeholder=".loz { border-radius: 4px; }&#10;.loz.hi { border-color: hotpink; }"></textarea>
+  <div>
+    <button id="save">Save CSS</button><span id="saved">Saved ✓</span>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>
