@@ -1,21 +1,21 @@
 {
   "manifest_version": 2,
   "name": "Radiator — Radial Tab Switcher",
-  "version": "0.8.0",
+  "version": "0.9.1",
   "description": "Summon a spinning ring of your tabs around the cursor — scroll to revolve, type to filter, click to switch. Live previews, history & bookmarks modes, themes.",
   "icons": {
     "48": "icons/ring.svg",
     "96": "icons/ring.svg",
     "128": "icons/ring.svg"
   },
-  "permissions": ["tabs", "storage", "browserSettings", "menus", "contextualIdentities", "bookmarks", "history", "<all_urls>"],
+  "permissions": ["tabs", "storage", "browserSettings", "menus", "contextualIdentities", "bookmarks", "history", "downloads", "search", "<all_urls>"],
   "background": {
     "scripts": ["background.js"]
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"],
+      "js": ["actions.js", "content.js"],
       "run_at": "document_idle"
     }
   ],

@@ -20,6 +20,21 @@
     .hint { color: #888; font-size: 12px; margin: 6px 0 0; }
     code { font-size: 11px; }
     #saved { color: #3fb950; margin-left: 8px; visibility: hidden; }
+
+    /* Compass layout: the eight slots sit around a ring glyph, so the grid
+       reads the same way the buttons appear on screen. */
+    .orbit-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 6px; margin: 8px 0; max-width: 520px;
+    }
+    .orbit-cell { display: flex; flex-direction: column; gap: 2px; }
+    .orbit-cell > span { color: #888; font-size: 11px; }
+    .orbit-cell select { width: 100%; }
+    .orbit-hub {
+      display: flex; align-items: center; justify-content: center;
+      color: #888; font-size: 11px; text-align: center; line-height: 1.3;
+    }
+    .orbit-hub svg { display: block; margin: 0 auto 2px; }
   </style>
 </head>
 <body>
@@ -31,12 +46,29 @@
   <label><input type="radio" name="modifier" value="ctrl"> Ctrl + right-click</label>
   <label><input type="radio" name="modifier" value="alt"> Alt + right-click</label>
   <label><input type="radio" name="modifier" value="meta"> Meta/Super + right-click</label>
-  <label><input type="radio" name="modifier" value="none"> No modifier needed</label>
-  <p class="hint">Holds the modifier to reach whichever menu isn't the default.
-    On links, the radial menu <em>always</em> needs the modifier — links carry
-    handy native items like Copy Link — so "no modifier" falls back to Ctrl
-    there. Shift + right-click always shows the normal menu, and there's an
+  <p class="hint">Hold the modifier to reach whichever menu isn't the default.
+    Shift + right-click always shows the normal menu, and there's an
     "Open Radial Tab Menu" fallback item inside it plus a toolbar button.</p>
+
+  <h3>Always use the normal menu on…</h3>
+  <label><input type="checkbox" id="nativeLinks"> Links</label>
+  <label><input type="checkbox" id="nativeEditable"> Text boxes and editable fields</label>
+  <label><input type="checkbox" id="nativeSelection"> Selected text</label>
+  <label><input type="checkbox" id="nativeMedia"> Images, video and audio</label>
+  <p class="hint">On these, plain right-click always gives Firefox's normal
+    menu — it has items the ring can't reproduce, like Copy Link, Save Image
+    As, spellcheck suggestions and Paste. The radial menu is still available
+    there by holding the modifier.</p>
+
+  <h3>Orbit buttons</h3>
+  <p class="hint">The action buttons around the outside of the ring. Pick what
+    sits at each compass position, or leave one empty.</p>
+  <div id="orbitGrid" class="orbit-grid"></div>
+  <p class="hint">Firefox doesn't let add-ons read the normal context menu, so
+    these can't be pulled from it — Radiator performs each action itself.
+    Middle-clicking <strong>New Tab</strong> opens it in the background. Zoom,
+    Pin and Mute keep the ring open so you can hit them repeatedly.</p>
+  <button id="orbitReset">Reset orbit to defaults</button>
 
   <h3>Ring</h3>
   <div class="row">
@@ -91,6 +123,7 @@
     <button id="save">Save CSS</button><span id="saved">Saved ✓</span>
   </div>
 
+  <script src="actions.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

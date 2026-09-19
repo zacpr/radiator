@@ -22,10 +22,17 @@ bar, or into a flat list. Radiator brings the tabs to your cursor instead:
 one gesture, and everything you have open is arranged in a ring around the
 exact spot you're already looking at.
 
-**Summon it.** Ctrl+right-click (the modifier is configurable, or use the
-"Open Radial Tab Menu" item in the normal context menu). Your tabs appear as
-favicon-and-title lozenges on a ring around the cursor, with a live
-screenshot preview of the highlighted tab in the center.
+**Summon it.** Ctrl+right-click (or make the ring your default right-click
+menu and let Ctrl summon the normal one instead — your choice; there's also
+a toolbar button and an "Open Radial Tab Menu" item in the normal context
+menu). Your tabs appear as favicon-and-title lozenges on a ring around the
+cursor, with a live screenshot preview of the highlighted tab in the center.
+
+**It knows when to get out of the way.** Right-clicking a link, a text box,
+selected text, or an image always gives you Firefox's normal menu — those
+carry items a ring can't reproduce, like Copy Link, Save Image As and
+spellcheck suggestions. Each of the four is toggleable, and the ring is
+still one modifier key away.
 
 **Spin it.** The scroll wheel revolves the ring under a fixed selector —
 whatever sits at 12 o'clock is selected, and one press of Enter takes you
@@ -46,16 +53,18 @@ one-click launch.
   open, so you can queue up several
 - Delete closes the highlighted tab and the ring re-flows; wheel + Delete is
   a very satisfying way to cull a tab session
-- Compass buttons around the outside: Back, Forward, Home, Reload, New Tab,
-  New Window
+- Eight orbit buttons around the outside, and you decide what each one does:
+  pick from 24 actions across navigation, tabs & windows, and page tools —
+  Reload (bypass cache), Private Window, Pin, Mute, Reader View, Zoom,
+  Bookmark, Print, Full Screen and more
 - Multi-Account Containers get their colours painted on each tab's edge
 - Shift+right-click (or a second right-click) always gives you Firefox's
   normal context menu — Radiator never locks you out of it
 
 **Make it yours.** Four built-in themes — Slate (dark minimal), Quest
 (parchment & leather), Holo (sci-fi neon), Runestone (ancient stonework) —
-plus a custom CSS box with documented style hooks, and settings for ring
-size, item scale, max items, and fill mode.
+plus a custom CSS box with documented style hooks, a configurable orbit, and
+settings for ring size, item scale, max items, and fill mode.
 
 **Private by design.** Radiator collects nothing, phones nowhere, and has no
 remote code. Everything — tab list, previews, history, bookmarks — stays

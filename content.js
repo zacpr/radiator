@@ -5,9 +5,11 @@
  *
  * Either the native context menu or the radial ring can be the default on
  * plain right-click (Options → Default menu); the configured modifier key
- * always opens whichever one *isn't* the default. On links, the radial only
- * ever opens with the modifier held, regardless of the default — links carry
- * native-menu actions (copy link, open in new tab, etc.) worth protecting.
+ * always opens whichever one *isn't* the default. On protected targets —
+ * links, editable fields, selected text and media, each toggleable — plain
+ * right-click always goes native regardless of the default, because the
+ * native menu has items the ring can't reproduce (Copy Link, Save Image As,
+ * spellcheck, Paste); the modifier still reaches the ring there.
  * Shift+right-click and a second right-click always fall through to native.
  *
  * The ring's selector notch is fixed at 12 o'clock; the scroll wheel
@@ -34,9 +36,10 @@
  * Left-click / Enter activates (switches tabs in Sites mode, navigates here
  * in History/Bookmarks); middle-click duplicates (Sites) or opens in a
  * background tab (History/Bookmarks) and keeps the menu open so several can
- * be queued up. Compass controls sit outside the ring: Back (W), Forward
- * (E), Home (N), Reload (S), New Tab (NW, middle-click = background), New
- * Window (NE).
+ * be queued up. Orbit buttons sit outside the ring on eight compass
+ * positions, each assigned an action from the catalog in actions.js via
+ * Options (defaults: New Tab NW, Home N, New Window NE, Back W, Forward E,
+ * Reload S).
  *
  * The whole assembly pops in from the cursor with a slight overshoot and
  * pops back out on close; everything lives inside one `.wrap` element so a
@@ -81,7 +84,8 @@
         padding: 0 ${d.padR}px 0 ${d.padL}px;
         border-radius: 999px; display: flex; align-items: center; gap: ${d.gap}px;
         cursor: pointer; pointer-events: auto;
-        transition: transform 130ms cubic-bezier(0.34, 1.56, 0.64, 1);
+        transition: transform 130ms cubic-bezier(0.34, 1.56, 0.64, 1),
+                    opacity 130ms ease;
         will-change: transform;
       }
       .loz.hi { z-index: 2; }
@@ -103,6 +107,14 @@
         width: ${CTRL_SIZE}px; height: ${CTRL_SIZE}px; border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
         cursor: pointer; pointer-events: auto;
+        transition: transform 130ms cubic-bezier(0.34, 1.56, 0.64, 1);
+        /* 'backwards' holds the from-state through the stagger delay, so a
+           button is invisible until its turn rather than flashing first. */
+        animation: rad-ctrl-in 240ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+      }
+      .ctrl:hover { transform: translate(-50%, -50%) scale(1.12); }
+      @keyframes rad-ctrl-in {
+        from { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
       }
       .ctrl svg { pointer-events: none; }
       .preview {
@@ -135,6 +147,51 @@
         font: 11px/1.3 monospace; opacity: 0.85;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       }
+      .link-card {
+        display: flex; flex-direction: column; justify-content: space-between;
+        width: 100%; height: 100%; padding: 8px 10px; pointer-events: auto;
+        user-select: none; box-sizing: border-box;
+      }
+      .link-header {
+        display: flex; flex-direction: column; gap: 2px; text-align: center;
+        overflow: hidden;
+      }
+      .link-title {
+        font-weight: 700; font-size: 12px; line-height: 1.25;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        opacity: 0.95;
+      }
+      .link-url-text {
+        font-size: 10px; opacity: 0.7; font-family: monospace;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .link-actions-grid {
+        display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;
+        margin-top: 6px; padding-top: 6px;
+        border-top: 1px solid rgba(128, 128, 128, 0.25);
+      }
+      .link-btn {
+        display: flex; align-items: center; justify-content: center;
+        height: 28px; border-radius: 6px; border: 1px solid currentColor;
+        opacity: 0.8; background: rgba(128, 128, 128, 0.12); color: inherit;
+        cursor: pointer; position: relative; transition: all 120ms ease;
+        padding: 0; outline: none;
+      }
+      .link-btn:hover {
+        opacity: 1; background: rgba(128, 128, 128, 0.3); transform: translateY(-1px);
+      }
+      .link-btn:active { transform: translateY(0); }
+      .link-btn svg { width: 14px; height: 14px; pointer-events: none; }
+      .link-btn[data-tooltip]::after {
+        content: attr(data-tooltip);
+        position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+        margin-bottom: 6px; padding: 4px 8px; border-radius: 4px;
+        background: rgba(15, 17, 21, 0.95); color: #fff; font-size: 10px; font-weight: 500;
+        line-height: 1; white-space: nowrap; pointer-events: none; opacity: 0;
+        transition: opacity 120ms ease; z-index: 100;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+      }
+      .link-btn[data-tooltip]:hover::after { opacity: 1; }
       .sorter {
         position: fixed; transform: translate(-50%, -50%);
         pointer-events: auto;
@@ -151,6 +208,20 @@
       .notch {
         position: fixed; transform: translate(-50%, -50%) rotate(45deg);
         width: 10px; height: 10px; pointer-events: none;
+        animation: rad-notch-in 280ms cubic-bezier(0.34, 1.56, 0.64, 1) 110ms backwards;
+      }
+      @keyframes rad-notch-in {
+        from { opacity: 0; transform: translate(-50%, -50%) rotate(45deg) scale(0.2); }
+      }
+      /* Respect the OS "reduce motion" setting: everything still appears in
+         the same place, just without the travel. */
+      @media (prefers-reduced-motion: reduce) {
+        .wrap, .wrap.out, .loz, .ctrl, .sort {
+          transition-duration: 1ms !important;
+          transition-delay: 0ms !important;
+        }
+        .ctrl, .notch { animation: none; }
+        .scroll .mq { animation: none; }
       }
     `;
   }
@@ -290,6 +361,10 @@
   const settings = {
     modifier: "ctrl",
     defaultMenu: "native", // native | radial — which one plain right-click opens
+    // Targets that keep the native menu on plain right-click whatever the
+    // default is, because the native menu has items the radial can't offer.
+    nativeOn: { links: true, editable: true, selection: true, media: true },
+    orbit: DEFAULT_ORBIT,
     theme: "slate",
     customCss: "",
     maxItems: 20,
@@ -304,6 +379,8 @@
     .get({
       modifier: settings.modifier,
       defaultMenu: settings.defaultMenu,
+      nativeOn: settings.nativeOn,
+      orbit: settings.orbit,
       theme: settings.theme,
       maxItems: settings.maxItems,
       minRadius: settings.minRadius,
@@ -313,7 +390,17 @@
       sortMode: settings.sortMode,
       containerColors: settings.containerColors,
     })
-    .then((s) => Object.assign(settings, s))
+    .then((s) => {
+      Object.assign(settings, s);
+      // The old "no modifier" choice is now the Default menu setting. Left
+      // as-is it would defeat the protected-target guard, since "no keys
+      // held" would count as holding the modifier, so retire it to Ctrl.
+      if (settings.modifier === "none") settings.modifier = "ctrl";
+      // A partial object from an older version would leave new keys
+      // undefined, which reads as "off"; fill the gaps in.
+      settings.nativeOn = { links: true, editable: true, selection: true, media: true, ...settings.nativeOn };
+      settings.orbit = { ...DEFAULT_ORBIT, ...settings.orbit };
+    })
     .catch(() => {});
   browser.storage.local
     .get({ customCss: "" })
@@ -324,42 +411,6 @@
       if (key in settings) settings[key] = change.newValue;
     }
   });
-
-  // ---------- outer controls ----------
-
-  const CONTROLS = [
-    {
-      title: "Back", angle: Math.PI,
-      msg: { type: "navBack" },
-      paths: ["M15 18l-6-6 6-6"],
-    },
-    {
-      title: "Forward", angle: 0,
-      msg: { type: "navForward" },
-      paths: ["M9 6l6 6-6 6"],
-    },
-    {
-      title: "Home", angle: -Math.PI / 2,
-      msg: { type: "goHome" },
-      paths: ["M3 10.5L12 3l9 7.5", "M5 9.5V21h14V9.5"],
-    },
-    {
-      title: "Reload", angle: Math.PI / 2,
-      msg: { type: "reloadTab" },
-      paths: ["M23 4v6h-6", "M20.49 15a9 9 0 1 1-2.12-9.36L23 10"],
-    },
-    {
-      title: "New Tab", angle: (-3 * Math.PI) / 4,
-      msg: { type: "newTab" },
-      middleMsg: { type: "newTab", background: true },
-      paths: ["M12 5v14", "M5 12h14"],
-    },
-    {
-      title: "New Window", angle: -Math.PI / 4,
-      msg: { type: "newWindow" },
-      paths: ["M3 5h18v14H3z", "M3 9h18", "M12 12.5v4", "M10 14.5h4"],
-    },
-  ];
 
   const SORTS = [
     { id: "tab", label: "Tab" },
@@ -416,6 +467,10 @@
   let previewToken = 0;
   let dismissing = false; // exit animation in flight; blocks re-entrant close()
   const previewLocal = new Map(); // tabId -> dataUrl, for this open only
+  let currentLinkInfo = null; // { url, text, targetEl } if opened on a link
+  let linkCardBox = null;
+  let linkCardTitle = null;
+  let linkCardSub = null;
 
   // ---------- lifecycle ----------
 
@@ -454,9 +509,14 @@
     modeData = null;
     previewToken++;
     previewLocal.clear();
+    currentLinkInfo = null;
+    linkCardBox = null;
+    linkCardTitle = null;
+    linkCardSub = null;
   }
 
-  async function open(x, y) {
+  async function open(x, y, linkInfo = null) {
+    currentLinkInfo = linkInfo;
     let tabs;
     try {
       tabs = await browser.runtime.sendMessage({ type: "getTabs" });
@@ -557,6 +617,107 @@
     previewBox.appendChild(previewImg);
     previewBox.appendChild(label);
     previewBox.appendChild(filterEl);
+
+    // Link card overlay (rendered if activated over a link)
+    if (currentLinkInfo) {
+      previewBox.style.pointerEvents = "auto";
+      linkCardBox = document.createElement("div");
+      linkCardBox.className = "link-card";
+
+      const header = document.createElement("div");
+      header.className = "link-header";
+
+      linkCardTitle = document.createElement("div");
+      linkCardTitle.className = "link-title";
+      linkCardTitle.textContent = currentLinkInfo.text || currentLinkInfo.url;
+
+      linkCardSub = document.createElement("div");
+      linkCardSub.className = "link-url-text";
+      linkCardSub.textContent = trimUrl(currentLinkInfo.url);
+
+      header.appendChild(linkCardTitle);
+      header.appendChild(linkCardSub);
+
+      const actionsGrid = document.createElement("div");
+      actionsGrid.className = "link-actions-grid";
+
+      const linkButtons = [
+        {
+          id: "open",
+          title: "Open",
+          paths: ["M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6", "M15 3h6v6", "M10 14L21 3"],
+          run: () => { send({ type: "openHere", url: currentLinkInfo.url }); close(); }
+        },
+        {
+          id: "newTab",
+          title: "Open in New Tab",
+          paths: ["M12 5v14", "M5 12h14"],
+          run: () => { send({ type: "newTab", url: currentLinkInfo.url, background: false }); close(); }
+        },
+        {
+          id: "newWindow",
+          title: "Open in New Window",
+          paths: ["M3 4h18a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z", "M2 9h20"],
+          run: () => { send({ type: "newWindow", url: currentLinkInfo.url }); close(); }
+        },
+        {
+          id: "download",
+          title: "Download Link",
+          paths: ["M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4", "M7 10l5 5 5-5", "M12 15V3"],
+          run: () => { send({ type: "downloadLink", url: currentLinkInfo.url }); close(); }
+        },
+        {
+          id: "search",
+          title: "Search URL",
+          paths: ["M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z", "M21 21l-4.35-4.35"],
+          run: () => { send({ type: "searchUrl", url: currentLinkInfo.url }); close(); }
+        },
+        {
+          id: "nativeMenu",
+          title: "Open Normal Context Menu",
+          paths: ["M4 6h16", "M4 12h16", "M4 18h16"],
+          run: () => {
+            const target = currentLinkInfo ? currentLinkInfo.targetEl : null;
+            close();
+            if (target) {
+              setTimeout(() => {
+                const rect = target.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+                target.dispatchEvent(new MouseEvent("contextmenu", {
+                  bubbles: true,
+                  cancelable: true,
+                  view: window,
+                  clientX: cx,
+                  clientY: cy,
+                  button: 2,
+                  buttons: 2
+                }));
+              }, 20);
+            }
+          }
+        }
+      ];
+
+      for (const btnDef of linkButtons) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "link-btn";
+        btn.setAttribute("data-tooltip", btnDef.title);
+        btn.appendChild(svgIcon(btnDef.paths));
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          btnDef.run();
+        });
+        actionsGrid.appendChild(btn);
+      }
+
+      linkCardBox.appendChild(header);
+      linkCardBox.appendChild(actionsGrid);
+      previewBox.appendChild(linkCardBox);
+    }
+
     wrap.appendChild(previewBox);
 
     // Switcher dials: bare text labels on a little arc; the active one is
@@ -592,31 +753,38 @@
     layoutSorter();
     layoutModer();
 
-    // Compass controls outside the ring
-    for (const ctrl of CONTROLS) {
+    // Orbit action buttons outside the ring, one per filled compass slot
+    const orbit = { ...DEFAULT_ORBIT, ...(settings.orbit || {}) };
+    let orbitIndex = 0;
+    for (const slot of ORBIT_SLOTS) {
+      // Empty slot, or an id left over from an older version of the catalog.
+      const action = ACTION_BY_ID.get(orbit[slot.id]);
+      if (!action) continue;
+
       const el = document.createElement("div");
       el.className = "ctrl";
-      el.style.left = `${cx + (rx + padX) * Math.cos(ctrl.angle)}px`;
-      el.style.top = `${cy + (ry + padY) * Math.sin(ctrl.angle)}px`;
-      el.appendChild(svgIcon(ctrl.paths));
+      el.style.left = `${cx + (rx + padX) * Math.cos(slot.angle)}px`;
+      el.style.top = `${cy + (ry + padY) * Math.sin(slot.angle)}px`;
+      // Stagger them in so the orbit assembles rather than blinking on.
+      el.style.animationDelay = `${90 + orbitIndex++ * 32}ms`;
+      el.appendChild(svgIcon(action.paths));
 
       el.addEventListener("mouseenter", () => {
         previewToken++; // cancel any pending tab preview
         previewImg.style.display = "none";
-        setLabel(ctrl.title);
+        setLabel(action.title);
       });
       el.addEventListener("mouseleave", () => updateHighlight());
       el.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        send(ctrl.msg);
-        close();
+        runAction(action, el);
       });
       el.addEventListener("auxclick", (e) => {
-        if (e.button !== 1 || !ctrl.middleMsg) return;
+        if (e.button !== 1 || !action.middleMsg) return;
         e.preventDefault();
         e.stopPropagation();
-        send(ctrl.middleMsg);
+        send(action.middleMsg);
         pulse(el); // stay open, matching middle-click on lozenges
       });
 
@@ -627,7 +795,7 @@
 
     modeData = { sites: tabs, history: null, bookmarks: null };
     ringTabs = tabs;
-    buildRing("active");
+    buildRing("active", true);
 
     // Pop in: kick the entrance transition on the next frame so the
     // browser has painted the "before" state first.
@@ -655,7 +823,10 @@
 
   // selPolicy: "active" = slot after the active tab under the selector,
   // "zero" = first slot (used while filtering), "keep" = stay in place.
-  function buildRing(selPolicy) {
+  // `entrance` is set only for the first build of an open, which animates the
+  // slots outward from the cursor; later rebuilds (sort, filter, mode) just
+  // re-flow in place.
+  function buildRing(selPolicy, entrance = false) {
     for (const it of items) it.el.remove();
     items = [];
     hoverIdx = null;
@@ -745,9 +916,38 @@
     }
 
     updateHighlight(); // place without animation first…
+
+    if (!entrance) {
+      requestAnimationFrame(() => {
+        for (const it of items) it.el.style.transition = "";
+      }); // …then let the base CSS transition animate rotation
+      return;
+    }
+
+    // First build of an open: collapse the slots onto the cursor, then let
+    // them fly out to the ring with a delay that grows with each hop away
+    // from the selector notch, so the ring unfurls both ways from 12 o'clock.
+    const centre =
+      `translate(${geom.cx}px, ${geom.cy}px) translate(-50%, -50%) scale(0.4)`;
+    for (const it of items) {
+      it.el.style.opacity = "0";
+      it.el.style.transform = centre;
+    }
     requestAnimationFrame(() => {
-      for (const it of items) it.el.style.transition = "";
-    }); // …then let the base CSS transition animate rotation
+      const total = items.length;
+      items.forEach((it, i) => {
+        const d = ((i - sel) % total + total) % total;
+        const hops = Math.min(d, total - d); // distance either way round
+        it.el.style.transition = "";
+        it.el.style.transitionDelay = `${Math.min(hops * 14, 200)}ms`;
+        it.el.style.opacity = "";
+      });
+      layout();
+      // Drop the delays once they've played, so rotating later is immediate.
+      setTimeout(() => {
+        for (const it of items) it.el.style.transitionDelay = "";
+      }, 420);
+    });
   }
 
   function setSort(id) {
@@ -810,6 +1010,22 @@
 
   function send(msg) {
     browser.runtime.sendMessage(msg).catch(() => {});
+  }
+
+  // Fire an orbit action. `keepOpen` ones (zoom, pin, mute) leave the menu up
+  // so they can be repeated; the rest dismiss first. Page-local actions wait
+  // out the exit animation, so the menu isn't caught in the print output or
+  // the fullscreen frame — user activation from the click outlives the delay.
+  function runAction(action, el) {
+    if (action.keepOpen) {
+      if (action.msg) send(action.msg);
+      if (action.run) action.run();
+      pulse(el);
+      return;
+    }
+    close();
+    if (action.msg) send(action.msg);
+    if (action.run) setTimeout(action.run, POP_MS + 20);
   }
 
   const trimUrl = (u) => (u || "").replace(/^https?:\/\//i, "");
@@ -920,7 +1136,8 @@
     layout();
     if (!items.length) {
       previewToken++;
-      previewImg.style.display = "none";
+      if (previewImg) previewImg.style.display = "none";
+      if (linkCardBox) linkCardBox.style.display = "none";
       setLabel(query ? "No matches" : "Nothing here");
       return;
     }
@@ -933,14 +1150,24 @@
     });
     const item = items[idx];
     startTitleMarquee(item);
-    if (ringMode === "sites") {
-      setLabel(item.title);
-      loadPreview(item);
-    } else {
-      // No live page to capture — show the address instead, scheme trimmed.
-      setLabel(trimUrl(item.url), true);
+
+    if (currentLinkInfo && hoverIdx === null) {
+      if (linkCardBox) linkCardBox.style.display = "flex";
+      if (previewImg) previewImg.style.display = "none";
+      if (label) label.style.display = "none";
       previewToken++;
-      previewImg.style.display = "none";
+    } else {
+      if (linkCardBox) linkCardBox.style.display = "none";
+      if (label) label.style.display = "block";
+      if (ringMode === "sites") {
+        setLabel(item.title);
+        loadPreview(item);
+      } else {
+        // No live page to capture — show the address instead, scheme trimmed.
+        setLabel(trimUrl(item.url), true);
+        previewToken++;
+        if (previewImg) previewImg.style.display = "none";
+      }
     }
   }
 
@@ -1064,37 +1291,80 @@
 
   // ---------- trigger ----------
 
-  function keyMatchesModifier(e, mod) {
-    switch (mod) {
-      case "ctrl":
-        return e.ctrlKey && !e.altKey && !e.metaKey;
+  function modifierMatches(e) {
+    switch (settings.modifier) {
       case "alt":
         return e.altKey && !e.ctrlKey && !e.metaKey;
       case "meta":
         return e.metaKey && !e.ctrlKey && !e.altKey;
-      case "none":
-        return !e.ctrlKey && !e.altKey && !e.metaKey;
+      case "ctrl":
       default:
-        return false;
+        return e.ctrlKey && !e.altKey && !e.metaKey;
     }
   }
 
-  const modifierMatches = (e) => keyMatchesModifier(e, settings.modifier);
+  const MEDIA_TAGS = new Set(["IMG", "VIDEO", "AUDIO", "CANVAS", "EMBED", "OBJECT"]);
+  // Input types that get a text-editing context menu; everything else
+  // (checkbox, button, range…) doesn't, so it isn't worth protecting.
+  const TEXT_INPUT_TYPES = new Set([
+    "", "text", "search", "url", "tel", "email", "password", "number",
+    "date", "datetime-local", "month", "week", "time",
+  ]);
 
-  // Links carry native-menu actions worth protecting (copy link, open in
-  // new tab, etc.), so the radial only opens there with the modifier held —
-  // regardless of the default-menu setting. composedPath already lists
-  // ancestors, so no manual DOM walk is needed.
-  function isLinkTarget(e) {
-    return e.composedPath().some((el) => el instanceof HTMLAnchorElement && el.href);
+  function isEditable(el) {
+    if (el.isContentEditable) return true;
+    if (el.tagName === "TEXTAREA") return true;
+    if (el.tagName === "INPUT") return TEXT_INPUT_TYPES.has((el.type || "").toLowerCase());
+    return false;
+  }
+
+  // Targets where the native menu carries items the radial can't reproduce:
+  // Copy Link on a link, spellcheck and Paste in a text field, Copy and
+  // "Search for…" on a selection, Save Image As on media. On these, plain
+  // right-click always goes native whatever the default is — the radial is
+  // still one modifier away.
+  function forcesNative(e) {
+    const on = settings.nativeOn || {};
+    if (on.selection) {
+      const s = window.getSelection();
+      if (s && !s.isCollapsed && String(s).trim()) return true;
+    }
+    // composedPath crosses shadow boundaries and already lists ancestors,
+    // so no manual DOM walk is needed.
+    for (const el of e.composedPath()) {
+      if (!el || el.nodeType !== 1) continue;
+      if (on.links && el.href && (el.tagName === "A" || el.tagName === "AREA")) return true;
+      if (on.editable && isEditable(el)) return true;
+      if (on.media && MEDIA_TAGS.has(el.tagName)) return true;
+    }
+    return false;
+  }
+
+  function findLink(e) {
+    if (!e || !e.composedPath) return null;
+    for (const el of e.composedPath()) {
+      if (!el || el.nodeType !== 1) continue;
+      if (el.href && (el.tagName === "A" || el.tagName === "AREA")) {
+        return {
+          url: el.href,
+          text: (el.textContent || el.getAttribute("aria-label") || el.title || el.href).trim(),
+          targetEl: el
+        };
+      }
+    }
+    return null;
   }
 
   let lastCtx = null; // last right-click spot, for the native-menu fallback item
+  let lastLinkInfo = null;
 
   window.addEventListener(
     "contextmenu",
     (e) => {
       lastCtx = { x: e.clientX, y: e.clientY };
+      const linkInfo = findLink(e);
+      lastLinkInfo = linkInfo;
+
       if (host) {
         // Second right-click: drop our menu and let the native one through.
         close();
@@ -1102,21 +1372,17 @@
       }
       if (e.shiftKey) return; // native menu, always
 
-      let openRadial;
-      if (isLinkTarget(e)) {
-        // "none" has no real key to hold, so fall back to Ctrl here — a
-        // link always needs *some* keypress to reach the radial menu.
-        const guardMod = settings.modifier === "none" ? "ctrl" : settings.modifier;
-        openRadial = keyMatchesModifier(e, guardMod);
-      } else {
-        const mod = modifierMatches(e);
-        openRadial = settings.defaultMenu === "radial" ? !mod : mod;
-      }
+      // A protected target flips the default to native for this click, which
+      // also means the modifier still reaches the radial there — that's the
+      // only way to get the ring on a link.
+      const def = forcesNative(e) ? "native" : settings.defaultMenu;
+      const mod = modifierMatches(e);
+      const openRadial = def === "radial" ? !mod : mod;
       if (!openRadial) return; // native menu
 
       e.preventDefault();
       e.stopPropagation();
-      open(e.clientX, e.clientY);
+      open(e.clientX, e.clientY, linkInfo);
     },
     true
   );
@@ -1128,7 +1394,7 @@
     if (msg.type === "openRadiator" && !host) {
       const x = lastCtx ? lastCtx.x : window.innerWidth / 2;
       const y = lastCtx ? lastCtx.y : window.innerHeight / 2;
-      open(x, y);
+      open(x, y, lastLinkInfo);
     }
   });
 })();
