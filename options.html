@@ -103,14 +103,24 @@
     Show container colours on tabs (Multi-Account Containers)</label>
 
   <h3>Theme</h3>
-  <select id="theme">
-    <option value="slate">Slate — dark &amp; minimal</option>
-    <option value="quest">Quest — parchment &amp; leather</option>
-    <option value="holo">Holo — sci-fi neon</option>
-    <option value="runestone">Runestone — ancient stonework</option>
-  </select>
+  <div class="row" style="justify-content: flex-start; gap: 12px;">
+    <select id="theme">
+      <optgroup label="Built-in Themes">
+        <option value="slate">Slate — dark &amp; minimal</option>
+        <option value="quest">Quest — parchment &amp; leather</option>
+        <option value="holo">Holo — sci-fi neon</option>
+        <option value="runestone">Runestone — ancient stonework</option>
+        <option value="aether">Aether — frosted glassmorphism (Next-Gen)</option>
+        <option value="synthwave">Synthwave 84 — retro neon dusk (Next-Gen)</option>
+        <option value="cyberhud">CyberHUD — tactical neon HUD (Next-Gen)</option>
+      </optgroup>
+      <optgroup id="customThemeGroup" label="Custom Themes">
+      </optgroup>
+    </select>
+    <button id="deleteCustomTheme" style="display: none; margin-top: 0;">Delete Selected Theme</button>
+  </div>
 
-  <h3>Custom CSS</h3>
+  <h3>Custom CSS &amp; Theme Studio</h3>
   <p class="hint">Applied on top of the selected theme. Style hooks:
     <code>.loz</code> (tab pill), <code>.loz .title</code>, <code>.fav</code>,
     <code>.badge</code>, <code>.loz.active</code> (current tab),
@@ -119,8 +129,14 @@
   </p>
   <textarea id="customCss" spellcheck="false"
     placeholder=".loz { border-radius: 4px; }&#10;.loz.hi { border-color: hotpink; }"></textarea>
-  <div>
-    <button id="save">Save CSS</button><span id="saved">Saved ✓</span>
+  <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px;">
+    <button id="save">Save CSS</button>
+    <button id="loadThemeCss">Load Selected Theme CSS</button>
+    <button id="saveAsTheme">Save as New Custom Theme</button>
+    <button id="exportThemes">Export Themes (JSON)</button>
+    <button id="importThemes">Import Themes (JSON)</button>
+    <input type="file" id="importFile" accept=".json" style="display: none;">
+    <span id="saved">Saved ✓</span>
   </div>
 
   <script src="actions.js"></script>

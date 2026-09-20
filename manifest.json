@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Radiator — Radial Tab Switcher",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "description": "Summon a spinning ring of your tabs around the cursor — scroll to revolve, type to filter, click to switch. Live previews, history & bookmarks modes, themes.",
   "icons": {
     "48": "icons/ring.svg",
